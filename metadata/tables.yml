@@ -1,0 +1,76 @@
+# Warehouse metadata layer.
+#
+# Every table and column described in plain English, including business
+# rules a query author needs to know. This file is the single source the
+# text-to-SQL agent reads, which is the point: the agent is only as good
+# as this metadata.
+
+database: demand
+engine: clickhouse
+
+tables:
+  - name: demand.orders
+    description: >
+      One row per customer vehicle order, migrated from the legacy SQL Server
+      OLTP system. Grain is order line. Covers roughly the last 3 years.
+    business_rules:
+      - status = 5 means the order was cancelled. Exclude status = 5 from all
+        demand and revenue calculations unless the question is specifically
+        about cancellations.
+      - revenue for an order line is unit_price * quantity.
+      - the table is ordered by (region, model, order_date), so filtering by
+        region and model first is cheap.
+    columns:
+      - name: order_id
+        type: UInt64
+        description: Unique order identifier from the source system.
+      - name: order_date
+        type: Date
+        description: Date the order was placed. Partition key (by month).
+      - name: region
+        type: LowCardinality(String)
+        description: >
+          Sales region. One of NA-West, NA-East, NA-Central, EU-Central,
+          EU-North, APAC-East.
+      - name: model
+        type: LowCardinality(String)
+        description: Vehicle model code. One of M3, MY, MS, MX, CT.
+      - name: trim_level
+        type: LowCardinality(String)
+        description: One of Standard, Long Range, Performance.
+      - name: unit_price
+        type: Decimal(10,2)
+        description: Price per unit in USD at order time.
+      - name: quantity
+        type: UInt8
+        description: Units on the order line. Usually 1, fleet orders higher.
+      - name: status
+        type: UInt8
+        description: >
+          Order status. 1 = placed, 2 = confirmed, 3 = in production,
+          4 = delivered, 5 = cancelled.
+      - name: delivery_estimate_days
+        type: UInt16
+        description: Estimated days from order to delivery, at order time.
+
+  - name: demand.monthly_demand
+    description: >
+      Monthly aggregate of units and revenue by region and model, excluding
+      cancelled orders. Also exported to Apache Iceberg as
+      demand.monthly_demand for downstream/lakehouse consumers.
+    columns:
+      - name: month
+        type: Date
+        description: First day of the month.
+      - name: region
+        type: LowCardinality(String)
+        description: Sales region, same values as demand.orders.region.
+      - name: model
+        type: LowCardinality(String)
+        description: Vehicle model code, same values as demand.orders.model.
+      - name: units
+        type: UInt64
+        description: Total units ordered that month (cancelled excluded).
+      - name: revenue
+        type: Float64
+        description: Total revenue in USD that month (cancelled excluded).
