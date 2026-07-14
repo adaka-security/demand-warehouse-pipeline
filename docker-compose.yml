@@ -20,7 +20,7 @@ x-airflow-common: &airflow-common
     CLICKHOUSE_HOST: clickhouse
     CLICKHOUSE_PORT: '8123'
     CLICKHOUSE_USER: default
-    CLICKHOUSE_PASSWORD: ''
+    CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
     # How many synthetic order rows to generate. Start with 200000 for a
     # smoke test, then bump to 3000000 for the real benchmark run.
     DEMAND_ROW_COUNT: ${DEMAND_ROW_COUNT:-3000000}
@@ -56,6 +56,9 @@ services:
 
   clickhouse:
     image: clickhouse/clickhouse-server:24.8
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
     ports:
       - "8123:8123"
       - "9000:9000"
