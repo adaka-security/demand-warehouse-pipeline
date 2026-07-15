@@ -30,6 +30,7 @@ MSSQL = dict(
 CH = dict(
     host=os.environ.get("CLICKHOUSE_HOST", "localhost"),
     port=int(os.environ.get("CLICKHOUSE_PORT", 8123)),
+    password=os.environ.get("CLICKHOUSE_PASSWORD", ""),
 )
 
 # Each entry: (name, sqlserver_query, clickhouse_query)
