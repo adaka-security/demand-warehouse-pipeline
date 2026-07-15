@@ -1,3 +1,4 @@
+
 # Demand Warehouse Pipeline
 
 
@@ -5,6 +6,11 @@ A demand planning data warehouse built end to end.
 The vehicle data lands in SQL server, an airflow pipeline transfers it into ClickHouse with validation.
 Once the validation is done a monthly aggregate gets exported to the Apache Iceberg, and also a small agent where it answers the questions about the data in plain English.
 So I built this to get hands-on with modern data infrastructure which is columnar databases, open table formats, and orchestration.
+
+
+
+**[Watch the 3 minute demo](https://www.loom.com/share/d77c977fcea54fbe91194877c93fe4ea)**
+
 
 ## Architecture
 ![architecture](docs/architecture.png)
